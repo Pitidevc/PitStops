@@ -18,7 +18,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -78,23 +82,26 @@ fun PrincipalScreen() {
             modifier = Modifier.matchParentSize()
         )
 
-        Text(
-            text = "Resumen de\nPitStops",
-            color = Color.White,
-            fontFamily = LuckiestGuy,
-            fontSize = 50.sp,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 70.dp)
-        )
 
         Column(
-            modifier = Modifier,
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+            .padding(top = 100.dp)
+            .padding(bottom = 20.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ){
+            Text(
+                text = "Resumen de\nPitStops",
+                color = Color.White,
+                fontFamily = LuckiestGuy,
+                fontSize = 50.sp,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+
+            )
+
             Image(
                 painter = painterResource(id = R.drawable.guidocars),
                 contentDescription = null,
@@ -112,9 +119,10 @@ fun PrincipalScreen() {
                     .background(Color.White, shape = RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text("🏁 Mejor Pit Stop",
+                Text("🏁 Resumen Pits Stops",
                     color = Color.Black,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 20.sp,
                 )
             }
 
@@ -128,6 +136,35 @@ fun PrincipalScreen() {
             ) {
                 GraficaBarras()
             }
+
+            Button(
+                onClick = { /* Aquí va lo que hace el botón */ },
+                        colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+            ),
+                modifier = Modifier
+                    .width(250.dp)
+                    .height(70.dp)
+                    .padding(top = 15.dp)
+            ) {
+                Text("Registrar PitStop")
+            }
+
+            Button(
+                onClick = { /* Aquí va lo que hace el botón */ },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Black,
+                    contentColor = Color.White
+                ),
+                modifier = Modifier
+                    .width(250.dp)
+                    .height(70.dp)
+                    .padding(top = 15.dp)
+            ) {
+                Text("Ver Listado")
+            }
+
 
         }
     }
