@@ -1,10 +1,9 @@
 package com.example.pitstops
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.example.pitstops.ui.view.PrincipalScreen
+import com.example.pitstops.ui.principalView.PrincipalScreen
 
 
 class MainActivity : ComponentActivity() {

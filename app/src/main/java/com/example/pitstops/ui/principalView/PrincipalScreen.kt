@@ -1,4 +1,4 @@
-package com.example.pitstops.ui.view
+package com.example.pitstops.ui.principalView
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
