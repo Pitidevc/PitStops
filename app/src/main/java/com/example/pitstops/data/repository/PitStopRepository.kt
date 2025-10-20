@@ -1,5 +1,6 @@
 package com.example.pitstops.data.repository
 
+import android.util.Log
 import com.example.pitstops.data.model.PitStop
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -52,4 +53,24 @@ class PitStopRepository {
         val result = pilotosRef.get().await()
         return result.documents.mapNotNull { it.getString("nombre") }
     }
+
+    suspend fun obtenerUltimosPitStops(limit: Long = 7): List<PitStop> {
+        return try {
+            val snapshot = pitStopsRef
+                .orderBy("fechaHora", Query.Direction.DESCENDING)
+                .limit(limit)
+                .get()
+                .await()
+
+            snapshot.documents.mapNotNull { doc ->
+                doc.toObject(PitStop::class.java)
+            }.reversed() // para mostrarlos de más antiguo a más reciente
+
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+
+
 }
