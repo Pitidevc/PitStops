@@ -36,8 +36,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.pitstops.R
 import com.example.pitstops.data.model.PitStop
+import com.example.pitstops.navigation.AppScreens
 import com.example.pitstops.ui.theme.LuckiestGuy
 import com.example.pitstops.ui.viewmodel.PitStopViewModel
 import com.github.mikephil.charting.charts.BarChart
@@ -49,20 +52,8 @@ import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.google.firebase.Timestamp
 
 
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            PrincipalScreen()
-        }
-
-    }
-}
-
-
 @Composable
-fun PrincipalScreen(viewModel: PitStopViewModel = PitStopViewModel()) {
+fun PrincipalScreen(navController : NavController, viewModel: PitStopViewModel = viewModel()) {
     // This line was causing the error. With the import, it will now compile.
     val pitStops by viewModel.pitStops.collectAsState()
     androidx.compose.runtime.LaunchedEffect(Unit) {
@@ -138,7 +129,7 @@ fun PrincipalScreen(viewModel: PitStopViewModel = PitStopViewModel()) {
             }
 
             Button(
-                onClick = { /* Aquí va lo que hace el botón */ },
+                onClick = { navController.navigate(AppScreens.RegisterScreen.route)},
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White,
                     contentColor = Color.Black
@@ -152,7 +143,7 @@ fun PrincipalScreen(viewModel: PitStopViewModel = PitStopViewModel()) {
             }
 
             Button(
-                onClick = { /* Aquí va lo que hace el botón */ },
+                onClick = { navController.navigate(AppScreens.ListScreen.route)},
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black,
                     contentColor = Color.White
@@ -214,12 +205,3 @@ fun GraficaPitStops(pitStops: List<PitStop>, modifier: Modifier = Modifier) {
     )
 }
 
-
-
-
-
-@Preview
-@Composable
-fun Previewco(){
-    PrincipalScreen()
-}

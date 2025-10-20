@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.google.firebase.Timestamp
 
 // ✅ Modelo real (igual al tuyo)
@@ -36,7 +37,7 @@ data class PitStop(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PitStopListScreen() {
+fun PitStopListScreen( navController: NavController) {
     // 🔸 Datos de ejemplo (luego reemplazables por los de Firebase)
     var pitStops by remember {
         mutableStateOf(
@@ -158,8 +159,4 @@ fun PitStopRow(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewPitStopListScreen() {
-    PitStopListScreen()
-}
+
