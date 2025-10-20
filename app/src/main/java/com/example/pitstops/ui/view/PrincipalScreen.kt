@@ -1,5 +1,7 @@
 package com.example.pitstops.ui.view
 
+
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,6 +19,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,11 +35,16 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import com.example.pitstops.R
+import com.example.pitstops.data.model.PitStop
 import com.example.pitstops.ui.theme.LuckiestGuy
+import com.example.pitstops.ui.viewmodel.PitStopViewModel
 import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.google.firebase.Timestamp
 
 
 class MainActivity : ComponentActivity() {
@@ -50,8 +59,12 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun PrincipalScreen() {
-
+fun PrincipalScreen(viewModel: PitStopViewModel = PitStopViewModel()) {
+    // This line was causing the error. With the import, it will now compile.
+    val pitStops by viewModel.pitStops.collectAsState()
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        viewModel.cargarUltimosPitStops()
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -114,7 +127,7 @@ fun PrincipalScreen() {
                     .height(350.dp)
                     .background(Color.White, shape = RoundedCornerShape(16.dp))
             ) {
-                GraficaBarras()
+                GraficaPitStops(pitStops)
             }
 
         }
@@ -122,39 +135,43 @@ fun PrincipalScreen() {
 }
 
 @Composable
-fun GraficaBarras(modifier: Modifier = Modifier) {
+fun GraficaPitStops(pitStops: List<PitStop>, modifier: Modifier = Modifier) {
     AndroidView(
         factory = { context ->
-            val chart = BarChart(context)
-
-            // Datos de ejemplo 📊
-            val entries = listOf(
-                BarEntry(1f, 2f),
-                BarEntry(2f, 1.5f),
-                BarEntry(3f, 3f),
-                BarEntry(4f, 2.2f),
-            )
-
-            val dataSet = BarDataSet(entries, "Pit Stops").apply {
-                color = android.graphics.Color.rgb(255, 193, 7) // amarillo
-                valueTextColor = android.graphics.Color.BLACK
-                valueTextSize = 12f
+            BarChart(context).apply {
+                setBackgroundColor(android.graphics.Color.WHITE)
+                setNoDataText("Cargando datos...")
             }
+        },
+        update = { chart ->
+            if (pitStops.isNotEmpty()) {
+                val entries = pitStops.mapIndexed { index, pit ->
+                    BarEntry(index.toFloat(), pit.tiempoTotal.toFloat())
+                }
 
-            chart.data = BarData(dataSet)
-            chart.description.text = "Rendimiento de Pit Stops"
-            chart.setNoDataText("Aún no hay datos 📊")
-            chart.setBackgroundColor(android.graphics.Color.WHITE)
+                val labels = pitStops.map { pit ->
+                    pit.fechaHora?.toDate()?.toString()?.takeLast(8) ?: "?"
+                }
 
-            // Personalización opcional
-            chart.axisLeft.textColor = android.graphics.Color.BLACK
-            chart.axisRight.isEnabled = false
-            chart.xAxis.textColor = android.graphics.Color.BLACK
-            chart.legend.textColor = android.graphics.Color.BLACK
+                val dataSet = BarDataSet(entries, "Tiempo de Pit Stops (s)").apply {
+                    color = android.graphics.Color.rgb(255, 193, 7)
+                    valueTextColor = android.graphics.Color.BLACK
+                    valueTextSize = 12f
+                }
 
-            chart.invalidate() // refresca el gráfico
+                val data = BarData(dataSet)
+                chart.data = data
 
-            chart
+                val xAxis = chart.xAxis
+                xAxis.valueFormatter = IndexAxisValueFormatter(labels)
+                xAxis.position = XAxis.XAxisPosition.BOTTOM
+                xAxis.textColor = android.graphics.Color.BLACK
+                chart.axisLeft.textColor = android.graphics.Color.BLACK
+                chart.axisRight.isEnabled = false
+                chart.legend.textColor = android.graphics.Color.BLACK
+                chart.description.text = "Últimos PitStops"
+                chart.invalidate()
+            }
         },
         modifier = modifier
             .width(350.dp)
@@ -162,6 +179,10 @@ fun GraficaBarras(modifier: Modifier = Modifier) {
             .padding(16.dp)
     )
 }
+
+
+
+
 
 @Preview
 @Composable
