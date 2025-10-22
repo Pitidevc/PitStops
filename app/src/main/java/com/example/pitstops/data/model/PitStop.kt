@@ -12,5 +12,6 @@ data class PitStop(
     val numNeumaticos : Int = 0,
     val estado: String = "",
     val motivoFallo : String = "",
+    val mecanicoPrincipal : String = "",
     val fechaHora : Timestamp?=null
 )

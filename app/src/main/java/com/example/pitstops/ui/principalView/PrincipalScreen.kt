@@ -1,8 +1,5 @@
 package com.example.pitstops.ui.principalView
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -28,10 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -42,23 +37,29 @@ import com.example.pitstops.R
 import com.example.pitstops.data.model.PitStop
 import com.example.pitstops.navigation.AppScreens
 import com.example.pitstops.ui.theme.LuckiestGuy
-import com.example.pitstops.ui.viewmodel.PitStopViewModel
+import com.example.pitstops.viewmodel.PitStopViewModel
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import com.google.firebase.Timestamp
+
 
 
 @Composable
 fun PrincipalScreen(navController : NavController, viewModel: PitStopViewModel = viewModel()) {
     // This line was causing the error. With the import, it will now compile.
+
     val pitStops by viewModel.pitStops.collectAsState()
     androidx.compose.runtime.LaunchedEffect(Unit) {
         viewModel.cargarUltimosPitStops()
     }
+
+    val mejorTiempo by viewModel.mejorTiempo.collectAsState()
+    val promedioTiempo by viewModel.promedioTiempo.collectAsState()
+    val totalParadas by viewModel.totalParadas.collectAsState()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -111,10 +112,37 @@ fun PrincipalScreen(navController : NavController, viewModel: PitStopViewModel =
                     .background(Color.White, shape = RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text("🏁 Mejor Pit Stop",
-                    color = Color.Black,
-                    fontFamily = FontFamily.Monospace
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxSize()
+
+                ) {
+
+
+                    Text(
+                        text = "🏁 Pit stop más rápido: ${String.format("%.2f", mejorTiempo)} s",
+                        color = Color.Black,
+
+                        fontSize = 16.sp,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                    Text(
+                        text = "⏱️ Promedio de tiempos: ${String.format("%.2f", promedioTiempo)} s",
+                        color = Color.Black,
+
+                        fontSize = 16.sp,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                    Text(
+                        text = "🛑 Total de paradas: $totalParadas",
+                        color = Color.Black,
+
+                        fontSize = 16.sp
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -165,26 +193,28 @@ fun GraficaPitStops(pitStops: List<PitStop>, modifier: Modifier = Modifier) {
     AndroidView(
         factory = { context ->
             BarChart(context).apply {
-                setBackgroundColor(android.graphics.Color.WHITE)
+                setBackgroundColor(android.graphics.Color.TRANSPARENT)
                 setNoDataText("Cargando datos...")
             }
         },
         update = { chart ->
-            if (pitStops.isNotEmpty()) {
+            if (pitStops.isNotEmpty() && chart.data?.entryCount != pitStops.size) {
                 val entries = pitStops.mapIndexed { index, pit ->
                     BarEntry(index.toFloat(), pit.tiempoTotal.toFloat())
                 }
 
                 val labels = pitStops.map { pit ->
-                    (pit.fechaHora as? Timestamp)?.toDate()?.toString()?.takeLast(8) ?: "?"                }
+                    pit.piloto
+                }
 
                 val dataSet = BarDataSet(entries, "Tiempo de Pit Stops (s)").apply {
-                    color = android.graphics.Color.rgb(255, 193, 7)
+                    color = android.graphics.Color.rgb(198, 69, 56)
                     valueTextColor = android.graphics.Color.BLACK
                     valueTextSize = 12f
                 }
 
                 val data = BarData(dataSet)
+                data.barWidth = 0.5f
                 chart.data = data
 
                 val xAxis = chart.xAxis
@@ -194,7 +224,7 @@ fun GraficaPitStops(pitStops: List<PitStop>, modifier: Modifier = Modifier) {
                 chart.axisLeft.textColor = android.graphics.Color.BLACK
                 chart.axisRight.isEnabled = false
                 chart.legend.textColor = android.graphics.Color.BLACK
-                chart.description.text = "Últimos PitStops"
+                chart.description.isEnabled = false
                 chart.invalidate()
             }
         },

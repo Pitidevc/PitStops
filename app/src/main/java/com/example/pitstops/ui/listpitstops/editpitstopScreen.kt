@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
@@ -16,44 +17,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.google.firebase.Timestamp
-
-// ✅ Modelo real (igual al tuyo)
-data class PitStop(
-    val id: String = "",
-    val piloto: String = "",
-    val escuderia: String = "",
-    val tiempoTotal: Double = 0.0,
-    val cambioNumaticos: String = "",
-    val numNeumaticos: Int = 0,
-    val estado: String = "",
-    val motivoFallo: String = "",
-    val fechaHora: Timestamp? = null
-)
+import com.example.pitstops.data.model.PitStop
+import com.example.pitstops.navigation.AppScreens
+import com.example.pitstops.viewmodels.PitStopListViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PitStopListScreen( navController: NavController) {
-    // 🔸 Datos de ejemplo (luego reemplazables por los de Firebase)
-    var pitStops by remember {
-        mutableStateOf(
-            listOf(
-                PitStop("1", "Oliveiro", "Mercedes", 2.4, "Sí", 4, "OK", "", null),
-                PitStop("2", "James", "Red Bull", 2.8, "Sí", 4, "Fallido", "Problema en tuerca", null),
-                PitStop("3", "Mark", "Aston Martin", 2.3, "No", 0, "OK", "", null),
-                PitStop("4", "Sebastian", "Red Bull", 3.1, "Sí", 4, "Fallido", "Mala alineación", null),
-                PitStop("5", "Lucas", "Mercedes", 3.0, "Sí", 4, "Fallido", "Pérdida de tiempo", null)
-            )
-        )
-    }
+fun PitStopListScreen(
+    navController: NavController,
+    viewModel: PitStopListViewModel = viewModel()
+) {
+    val pitStops by viewModel.pitStops.collectAsState()
+    val loading by viewModel.loading.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
 
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
 
-    // 🔍 Filtrar los resultados según el texto ingresado
+    // 🔍 Filtrar por piloto
     val filteredList = pitStops.filter {
         it.piloto.contains(searchQuery.text, ignoreCase = true)
     }
@@ -65,6 +50,22 @@ fun PitStopListScreen( navController: NavController) {
             .padding(16.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+            // 🔙 Botón de retroceso
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                IconButton(onClick = {
+                    navController.navigate(AppScreens.FirstScreen.route) {
+                        popUpTo(AppScreens.FirstScreen.route) { inclusive = true }
+                    }
+                }) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                }
+            }
+
+            // 🏁 Título
             Text(
                 text = "Listado de Pit Stops",
                 fontSize = 24.sp,
@@ -72,7 +73,7 @@ fun PitStopListScreen( navController: NavController) {
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // 🔹 Barra de búsqueda
+            // 🔍 Barra de búsqueda
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -83,40 +84,55 @@ fun PitStopListScreen( navController: NavController) {
                     .padding(bottom = 16.dp)
             )
 
-            // 🔹 Encabezado de la tabla
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFEEEEEE), shape = RoundedCornerShape(8.dp))
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Núm.", fontWeight = FontWeight.Bold)
-                Text("Piloto", fontWeight = FontWeight.Bold)
-                Text("Tiempo (s)", fontWeight = FontWeight.Bold)
-                Text("Estado", fontWeight = FontWeight.Bold)
-                Text("Acciones", fontWeight = FontWeight.Bold)
-            }
+            // 🔄 Contenido
+            if (loading) {
+                CircularProgressIndicator()
+            } else {
+                if (filteredList.isEmpty()) {
+                    Text("No se encontraron Pit Stops", color = Color.Gray)
+                } else {
+                    EncabezadoTabla()
 
-            Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-            LazyColumn {
-                itemsIndexed(filteredList) { index, pitStop ->
-                    PitStopRow(
-                        index = index + 1,
-                        pitStop = pitStop,
-                        onEdit = {
-                            // Aquí iría la navegación o edición
-                        },
-                        onDelete = {
-                            // Eliminar (en Firebase luego)
-                            pitStops = pitStops.toMutableList().apply { remove(pitStop) }
+                    LazyColumn {
+                        itemsIndexed(filteredList) { index, pitStop ->
+                            PitStopRow(
+                                index = index + 1,
+                                pitStop = pitStop,
+                                onEdit = {
+                                    // ⚙️ Navegación futura a la pantalla de edición
+                                    // navController.navigate("${AppScreens.EditPitStop.route}/${pitStop.id}")
+                                },
+                                onDelete = {
+                                    coroutineScope.launch {
+                                        viewModel.eliminarPitStop(pitStop.id)
+                                    }
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
                         }
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun EncabezadoTabla() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFFEEEEEE), shape = RoundedCornerShape(8.dp))
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text("Núm.", fontWeight = FontWeight.Bold)
+        Text("Piloto", fontWeight = FontWeight.Bold)
+        Text("Tiempo (s)", fontWeight = FontWeight.Bold)
+        Text("Estado", fontWeight = FontWeight.Bold)
+        Text("Acciones", fontWeight = FontWeight.Bold)
     }
 }
 
@@ -139,7 +155,14 @@ fun PitStopRow(
         Text(pitStop.piloto)
         Text(pitStop.tiempoTotal.toString())
 
-        val estadoColor = if (pitStop.estado == "OK") Color(0xFF4CAF50) else Color(0xFFD32F2F)
+        // 🎨 Estado con color
+        val estadoColor = when (pitStop.estado.lowercase()) {
+            "ok" -> Color(0xFF4CAF50)
+            "retraso" -> Color(0xFFFFC107)
+            "fallido" -> Color(0xFFD32F2F)
+            else -> Color(0xFF9E9E9E)
+        }
+
         Box(
             modifier = Modifier
                 .background(estadoColor, shape = RoundedCornerShape(12.dp))
@@ -148,6 +171,7 @@ fun PitStopRow(
             Text(pitStop.estado, color = Color.White)
         }
 
+        // 🛠️ Botones
         Row {
             IconButton(onClick = onEdit) {
                 Icon(Icons.Default.Edit, contentDescription = "Editar", tint = Color(0xFF1976D2))
@@ -158,5 +182,3 @@ fun PitStopRow(
         }
     }
 }
-
-

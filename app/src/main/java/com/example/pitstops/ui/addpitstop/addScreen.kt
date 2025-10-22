@@ -8,16 +8,33 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.pitstops.navigation.AppScreens
+import com.example.pitstops.viewmodel.AddPitStopViewModel
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegistrarPitStopScreen( navController: NavController) {
-    // Variables del formulario
+fun RegistrarPitStopScreen(
+    navController: NavController,
+    viewModel: AddPitStopViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+) {
+    // 🔹 Observamos el estado desde el ViewModel
+    val pilotos by viewModel.pilotos.collectAsStateWithLifecycle()
+    val neumaticos by viewModel.neumaticos.collectAsStateWithLifecycle()
+    val estados by viewModel.estados.collectAsStateWithLifecycle()
+    val mensaje by viewModel.mensaje.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+
+    // 🔹 Cargar datos una sola vez
+    LaunchedEffect(Unit) {
+        viewModel.cargarDatosFormulario()
+    }
+
+    // 🔹 Variables del formulario
     var piloto by remember { mutableStateOf("") }
     var escuderia by remember { mutableStateOf("") }
     var tiempo by remember { mutableStateOf("") }
@@ -25,230 +42,166 @@ fun RegistrarPitStopScreen( navController: NavController) {
     var numeroNeumaticos by remember { mutableStateOf("") }
     var estado by remember { mutableStateOf("") }
     var motivoFallo by remember { mutableStateOf("") }
-    var mecanico by remember { mutableStateOf("") }
-    var fechaHora by remember { mutableStateOf("") }
+    var mecanicoPrincipal by remember { mutableStateOf("") } // 👈 nuevo
 
-    // Opciones de los selects
-    val pilotos = listOf("Lewis Hamilton", "Max Verstappen", "Fernando Alonso")
-    val escuderias = listOf("Mercedes", "Red Bull", "Aston Martin")
-    val cambios = listOf("Sí", "No")
-    val estados = listOf("Completado", "Pendiente")
+    // 🔹 Llenar escudería automáticamente
+    LaunchedEffect(piloto) {
+        if (piloto.isNotBlank()) {
+            viewModel.obtenerEscuderiaPorPiloto(piloto) {
+                escuderia = it
+            }
+        }
+    }
 
+    // 🔹 Si se guarda correctamente, volver al inicio después de 1.5 s
+    LaunchedEffect(mensaje) {
+        if (mensaje?.contains("✅") == true) {
+            delay(1500)
+            navController.navigate(AppScreens.FirstScreen.route) {
+                popUpTo(AppScreens.FirstScreen.route) { inclusive = true }
+            }
+        }
+    }
+
+    // 🔹 Contenido principal
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFD32F2F)) // rojo base
+            .background(Color(0xFFD32F2F))
     ) {
-        Column(
-            modifier = Modifier
-                .align(Alignment.Center) // ⬅️ Centra completamente el formulario
-                .fillMaxWidth(0.9f)
-                .background(Color.White, shape = RoundedCornerShape(16.dp))
-                .padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Registrar Pit Stop",
-                fontSize = 22.sp,
-                color = Color(0xFFD32F2F)
+        if (isLoading) {
+            CircularProgressIndicator(
+                color = Color.White,
+                modifier = Modifier.align(Alignment.Center)
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // --- Piloto ---
-            var expandedPiloto by remember { mutableStateOf(false) }
-            ExposedDropdownMenuBox(
-                expanded = expandedPiloto,
-                onExpandedChange = { expandedPiloto = !expandedPiloto }
+        } else {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .fillMaxWidth(0.9f)
+                    .background(Color.White, shape = RoundedCornerShape(16.dp))
+                    .padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                OutlinedTextField(
-                    value = piloto,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Piloto") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedPiloto) },
-                    modifier = Modifier.fillMaxWidth()
+                Text(
+                    text = "Registrar Pit Stop",
+                    fontSize = 22.sp,
+                    color = Color(0xFFD32F2F)
                 )
-                ExposedDropdownMenu(
-                    expanded = expandedPiloto,
-                    onDismissRequest = { expandedPiloto = false }
-                ) {
-                    pilotos.forEach { opcion ->
-                        DropdownMenuItem(
-                            text = { Text(opcion) },
-                            onClick = {
-                                piloto = opcion
-                                expandedPiloto = false
-                            }
-                        )
-                    }
-                }
-            }
 
-            Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Escudería ---
-            var expandedEscuderia by remember { mutableStateOf(false) }
-            ExposedDropdownMenuBox(
-                expanded = expandedEscuderia,
-                onExpandedChange = { expandedEscuderia = !expandedEscuderia }
-            ) {
+                // 🔸 Piloto
+                DropdownCampo("Piloto", piloto, pilotos) { piloto = it }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // 🔸 Escudería (solo lectura)
                 OutlinedTextField(
                     value = escuderia,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Escudería") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedEscuderia) },
+                    label = { Text("Escudería (auto)") },
                     modifier = Modifier.fillMaxWidth()
                 )
-                ExposedDropdownMenu(
-                    expanded = expandedEscuderia,
-                    onDismissRequest = { expandedEscuderia = false }
-                ) {
-                    escuderias.forEach { opcion ->
-                        DropdownMenuItem(
-                            text = { Text(opcion) },
-                            onClick = {
-                                escuderia = opcion
-                                expandedEscuderia = false
-                            }
-                        )
-                    }
-                }
-            }
 
-            Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-            // --- Tiempo total (s) ---
-            OutlinedTextField(
-                value = tiempo,
-                onValueChange = { tiempo = it },
-                label = { Text("Tiempo Total (s)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // --- Cambio de neumáticos ---
-            var expandedCambio by remember { mutableStateOf(false) }
-            ExposedDropdownMenuBox(
-                expanded = expandedCambio,
-                onExpandedChange = { expandedCambio = !expandedCambio }
-            ) {
+                // 🔸 Tiempo
                 OutlinedTextField(
-                    value = cambioNeumaticos,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Cambio de Neumáticos") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCambio) },
+                    value = tiempo,
+                    onValueChange = { tiempo = it },
+                    label = { Text("Tiempo Total (s)") },
                     modifier = Modifier.fillMaxWidth()
                 )
-                ExposedDropdownMenu(
-                    expanded = expandedCambio,
-                    onDismissRequest = { expandedCambio = false }
-                ) {
-                    cambios.forEach { opcion ->
-                        DropdownMenuItem(
-                            text = { Text(opcion) },
-                            onClick = {
-                                cambioNeumaticos = opcion
-                                expandedCambio = false
-                            }
-                        )
-                    }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // 🔸 Cambio neumáticos
+                DropdownCampo("Cambio de Neumáticos", cambioNeumaticos, neumaticos) {
+                    cambioNeumaticos = it
                 }
-            }
 
-            Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-            // --- Número de neumáticos ---
-            OutlinedTextField(
-                value = numeroNeumaticos,
-                onValueChange = { numeroNeumaticos = it },
-                label = { Text("Número de Neumáticos") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // --- Estado ---
-            var expandedEstado by remember { mutableStateOf(false) }
-            ExposedDropdownMenuBox(
-                expanded = expandedEstado,
-                onExpandedChange = { expandedEstado = !expandedEstado }
-            ) {
+                // 🔸 Número de neumáticos
                 OutlinedTextField(
-                    value = estado,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Estado") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedEstado) },
+                    value = numeroNeumaticos,
+                    onValueChange = { numeroNeumaticos = it },
+                    label = { Text("Número de Neumáticos") },
                     modifier = Modifier.fillMaxWidth()
                 )
-                ExposedDropdownMenu(
-                    expanded = expandedEstado,
-                    onDismissRequest = { expandedEstado = false }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // 🔸 Estado
+                DropdownCampo("Estado", estado, estados) { estado = it }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // 🔸 Mecánico principal 👇
+                OutlinedTextField(
+                    value = mecanicoPrincipal,
+                    onValueChange = { mecanicoPrincipal = it },
+                    label = { Text("Mecanico Principal") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // 🔸 Motivo de fallo
+                OutlinedTextField(
+                    value = motivoFallo,
+                    onValueChange = { motivoFallo = it },
+                    label = { Text("Motivo del Fallo") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // 🔹 Botones
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    estados.forEach { opcion ->
-                        DropdownMenuItem(
-                            text = { Text(opcion) },
-                            onClick = {
-                                estado = opcion
-                                expandedEstado = false
+                    Button(
+                        onClick = {
+                            viewModel.registrarPitStop(
+                                piloto = piloto,
+                                escuderia = escuderia,
+                                tiempo = tiempo.toDoubleOrNull() ?: 0.0,
+                                cambioNeumaticos = cambioNeumaticos,
+                                numNeumaticos = numeroNeumaticos.toIntOrNull() ?: 0,
+                                estado = estado,
+                                motivoFallo = motivoFallo,
+                                mecanicoPrincipal = mecanicoPrincipal
+                            )
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+                    ) {
+                        Text("Guardar", color = Color.White)
+                    }
+
+                    Button(
+                        onClick = {
+                            navController.navigate(AppScreens.FirstScreen.route) {
+                                popUpTo(AppScreens.FirstScreen.route) { inclusive = true }
                             }
-                        )
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+                    ) {
+                        Text("Cancelar", color = Color.White)
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-            // --- Motivo del fallo ---
-            OutlinedTextField(
-                value = motivoFallo,
-                onValueChange = { motivoFallo = it },
-                label = { Text("Motivo del Fallo") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // --- Mecánico principal ---
-            OutlinedTextField(
-                value = mecanico,
-                onValueChange = { mecanico = it },
-                label = { Text("Mecánico Principal") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // --- Fecha y hora ---
-            OutlinedTextField(
-                value = fechaHora,
-                onValueChange = { fechaHora = it },
-                label = { Text("Fecha y Hora del Pit Stop") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // --- Botones ---
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Button(
-                    onClick = { /* Guardar */ },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
-                ) {
-                    Text("Guardar", color = Color.White)
-                }
-                Button(
-                    onClick = { navController.navigate(AppScreens.FirstScreen.route)},
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
-                ) {
-                    Text("Cancelar", color = Color.White)
+                // 🔹 Mensaje
+                mensaje?.let {
+                    Text(
+                        text = it,
+                        color = if (it.contains("✅")) Color(0xFF388E3C) else Color(0xFFD32F2F)
+                    )
                 }
             }
         }
@@ -256,3 +209,52 @@ fun RegistrarPitStopScreen( navController: NavController) {
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropdownCampo(
+    label: String,
+    valor: String,
+    opciones: List<String>,
+    onSelect: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded }
+    ) {
+        OutlinedTextField(
+            value = valor,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            opciones.forEach { opcion ->
+                DropdownMenuItem(
+                    text = { Text(opcion) },
+                    onClick = {
+                        onSelect(opcion)
+                        expanded = false
+                    }
+                )
+            }
+
+            // 🧩 Mostrar mensaje si la lista está vacía
+            if (opciones.isEmpty()) {
+                DropdownMenuItem(
+                    text = { Text("Sin datos disponibles") },
+                    onClick = { expanded = false }
+                )
+            }
+        }
+    }
+}

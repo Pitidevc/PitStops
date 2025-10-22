@@ -6,19 +6,21 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
+
 class PitStopRepository {
 
     private val db = FirebaseFirestore.getInstance()
     private val pitStopsRef = db.collection("pitstops")
     private val pilotosRef = db.collection("pilotos")
 
+
     // 🟢 Agregar nuevo pit stop (con ID numérico o autogenerado)
     suspend fun agregarPitStop(pitStop: PitStop) {
-        val snapshot = pitStopsRef.get().await()
-        val nuevoId = (snapshot.size() + 1).toString()
 
-        val pitStopConId = pitStop.copy(id = nuevoId)
-        pitStopsRef.document(nuevoId).set(pitStopConId).await()
+        val nuevoDoc = pitStopsRef.document()
+        val pitStopConId = pitStop.copy(id = nuevoDoc.id)
+
+        nuevoDoc.set(pitStopConId).await()
     }
 
     // 🟡 Obtener todos los pit stops
@@ -54,6 +56,23 @@ class PitStopRepository {
         return result.documents.mapNotNull { it.getString("nombre") }
     }
 
+    suspend fun obtenerEstados(): List<String> {
+        val Snapshot = db.collection("estados")
+            .document("tZAK8CG7dv4PYQALTfQ8")
+            .get()
+            .await()
+
+        return Snapshot.get("estado") as? List<String> ?: emptyList()
+    }
+
+    suspend fun obtenerNeumaticos(): List<String> {
+        val Snapshot = db.collection("neumaticos")
+            .document("iGBWnOVhVkty24teI6o8")
+            .get()
+            .await()
+
+        return Snapshot.get("tipo") as? List<String> ?: emptyList()
+    }
     suspend fun obtenerUltimosPitStops(limit: Long = 7): List<PitStop> {
         return try {
             val snapshot = pitStopsRef
