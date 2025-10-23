@@ -22,19 +22,19 @@ fun RegistrarPitStopScreen(
     navController: NavController,
     viewModel: AddPitStopViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-    // 🔹 Observamos el estado desde el ViewModel
+
     val pilotos by viewModel.pilotos.collectAsStateWithLifecycle()
     val neumaticos by viewModel.neumaticos.collectAsStateWithLifecycle()
     val estados by viewModel.estados.collectAsStateWithLifecycle()
     val mensaje by viewModel.mensaje.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-    // 🔹 Cargar datos una sola vez
+
     LaunchedEffect(Unit) {
         viewModel.cargarDatosFormulario()
     }
 
-    // 🔹 Variables del formulario
+
     var piloto by remember { mutableStateOf("") }
     var escuderia by remember { mutableStateOf("") }
     var tiempo by remember { mutableStateOf("") }
@@ -42,9 +42,9 @@ fun RegistrarPitStopScreen(
     var numeroNeumaticos by remember { mutableStateOf("") }
     var estado by remember { mutableStateOf("") }
     var motivoFallo by remember { mutableStateOf("") }
-    var mecanicoPrincipal by remember { mutableStateOf("") } // 👈 nuevo
+    var mecanicoPrincipal by remember { mutableStateOf("") }
 
-    // 🔹 Llenar escudería automáticamente
+
     LaunchedEffect(piloto) {
         if (piloto.isNotBlank()) {
             viewModel.obtenerEscuderiaPorPiloto(piloto) {
@@ -53,7 +53,7 @@ fun RegistrarPitStopScreen(
         }
     }
 
-    // 🔹 Si se guarda correctamente, volver al inicio después de 1.5 s
+
     LaunchedEffect(mensaje) {
         if (mensaje?.contains("✅") == true) {
             delay(1500)
@@ -63,7 +63,7 @@ fun RegistrarPitStopScreen(
         }
     }
 
-    // 🔹 Contenido principal
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -91,12 +91,12 @@ fun RegistrarPitStopScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 🔸 Piloto
+
                 DropdownCampo("Piloto", piloto, pilotos) { piloto = it }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 🔸 Escudería (solo lectura)
+
                 OutlinedTextField(
                     value = escuderia,
                     onValueChange = {},
@@ -107,7 +107,7 @@ fun RegistrarPitStopScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 🔸 Tiempo
+
                 OutlinedTextField(
                     value = tiempo,
                     onValueChange = { tiempo = it },
@@ -117,14 +117,14 @@ fun RegistrarPitStopScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 🔸 Cambio neumáticos
+
                 DropdownCampo("Cambio de Neumáticos", cambioNeumaticos, neumaticos) {
                     cambioNeumaticos = it
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 🔸 Número de neumáticos
+
                 OutlinedTextField(
                     value = numeroNeumaticos,
                     onValueChange = { numeroNeumaticos = it },
@@ -134,12 +134,12 @@ fun RegistrarPitStopScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 🔸 Estado
+
                 DropdownCampo("Estado", estado, estados) { estado = it }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 🔸 Mecánico principal 👇
+
                 OutlinedTextField(
                     value = mecanicoPrincipal,
                     onValueChange = { mecanicoPrincipal = it },
@@ -149,7 +149,7 @@ fun RegistrarPitStopScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 🔸 Motivo de fallo
+
                 OutlinedTextField(
                     value = motivoFallo,
                     onValueChange = { motivoFallo = it },
@@ -159,7 +159,7 @@ fun RegistrarPitStopScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // 🔹 Botones
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -196,7 +196,7 @@ fun RegistrarPitStopScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 🔹 Mensaje
+
                 mensaje?.let {
                     Text(
                         text = it,
@@ -248,7 +248,7 @@ fun DropdownCampo(
                 )
             }
 
-            // 🧩 Mostrar mensaje si la lista está vacía
+
             if (opciones.isEmpty()) {
                 DropdownMenuItem(
                     text = { Text("Sin datos disponibles") },

@@ -64,5 +64,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
     implementation("androidx.navigation:navigation-compose:2.8.0")
     implementation("androidx.navigation:navigation-compose:2.8.0-beta01")
-
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.mockito:mockito-core:5.11.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 }

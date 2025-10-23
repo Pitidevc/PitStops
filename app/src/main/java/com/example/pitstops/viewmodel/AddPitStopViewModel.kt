@@ -30,21 +30,21 @@ class AddPitStopViewModel(
     private val _mensaje = MutableStateFlow<String?>(null)
     val mensaje: StateFlow<String?> = _mensaje
 
-    // --- TAG para logs ---
+
     private val TAG = "AddPitStopViewModel"
 
     fun cargarDatosFormulario() {
         viewModelScope.launch {
             _isLoading.value = true
-            Log.d(TAG, "🔄 Iniciando carga de datos del formulario...")
+            Log.d(TAG, "Iniciando carga de datos del formulario...")
             try {
                 val listaPilotos = repository.obtenerPilotos()
                 val listaNeumaticos = repository.obtenerNeumaticos()
                 val listaEstados = repository.obtenerEstados()
 
-                Log.d(TAG, "✅ Pilotos cargados: ${listaPilotos.size} -> $listaPilotos")
-                Log.d(TAG, "✅ Neumáticos cargados: ${listaNeumaticos.size} -> $listaNeumaticos")
-                Log.d(TAG, "✅ Estados cargados: ${listaEstados.size} -> $listaEstados")
+                Log.d(TAG, "Pilotos cargados: ${listaPilotos.size} -> $listaPilotos")
+                Log.d(TAG, "Neumáticos cargados: ${listaNeumaticos.size} -> $listaNeumaticos")
+                Log.d(TAG, "Estados cargados: ${listaEstados.size} -> $listaEstados")
 
                 _pilotos.value = listaPilotos
                 _neumaticos.value = listaNeumaticos
@@ -52,28 +52,28 @@ class AddPitStopViewModel(
 
                 _mensaje.value = null
             } catch (e: Exception) {
-                Log.e(TAG, "❌ Error al cargar datos: ${e.message}", e)
+                Log.e(TAG, "Error al cargar datos: ${e.message}", e)
                 _mensaje.value = "Error al cargar datos: ${e.message}"
             } finally {
                 _isLoading.value = false
-                Log.d(TAG, "✅ Carga de datos finalizada.")
+                Log.d(TAG, "Carga de datos finalizada.")
             }
         }
     }
 
     fun obtenerEscuderiaPorPiloto(piloto: String, onResult: (String) -> Unit) {
         viewModelScope.launch {
-            Log.d(TAG, "🔍 Buscando escudería para piloto: $piloto")
+            Log.d(TAG, "Buscando escudería para piloto: $piloto")
             try {
                 val escuderia = repository.obtenerEscuderiaPorPiloto(piloto)
                 if (escuderia != null) {
-                    Log.d(TAG, "✅ Escudería encontrada: $escuderia")
+                    Log.d(TAG, "Escudería encontrada: $escuderia")
                     onResult(escuderia)
                 } else {
-                    Log.w(TAG, "⚠️ No se encontró escudería para el piloto: $piloto")
+                    Log.w(TAG, "⚠No se encontró escudería para el piloto: $piloto")
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "❌ Error al obtener escudería: ${e.message}", e)
+                Log.e(TAG, "Error al obtener escudería: ${e.message}", e)
                 _mensaje.value = "Error al obtener escudería: ${e.message}"
             }
         }
@@ -108,9 +108,9 @@ class AddPitStopViewModel(
                 )
                 repository.agregarPitStop(pitStop)
                 _mensaje.value = "✅ Pit Stop registrado correctamente"
-                Log.d(TAG, "✅ Pit Stop guardado exitosamente.")
+                Log.d(TAG, "Pit Stop guardado exitosamente.")
             } catch (e: Exception) {
-                Log.e(TAG, "❌ Error al registrar Pit Stop: ${e.message}", e)
+                Log.e(TAG, "Error al registrar Pit Stop: ${e.message}", e)
                 _mensaje.value = "Error: ${e.message}"
             } finally {
                 _isLoading.value = false

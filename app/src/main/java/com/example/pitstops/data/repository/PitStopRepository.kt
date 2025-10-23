@@ -14,7 +14,7 @@ class PitStopRepository {
     private val pilotosRef = db.collection("pilotos")
 
 
-    // 🟢 Agregar nuevo pit stop (con ID numérico o autogenerado)
+
     suspend fun agregarPitStop(pitStop: PitStop) {
 
         val nuevoDoc = pitStopsRef.document()
@@ -23,7 +23,7 @@ class PitStopRepository {
         nuevoDoc.set(pitStopConId).await()
     }
 
-    // 🟡 Obtener todos los pit stops
+
     suspend fun obtenerPitStops(): List<PitStop> {
         val result = pitStopsRef
             .orderBy("fechaHora", Query.Direction.DESCENDING)
@@ -34,23 +34,23 @@ class PitStopRepository {
         }
     }
 
-    // 🔵 Eliminar un pit stop por su ID
+
     suspend fun eliminarPitStop(id: String) {
         pitStopsRef.document(id).delete().await()
     }
 
-    // 🟣 Actualizar pit stop existente
+
     suspend fun actualizarPitStop(pitStop: PitStop) {
         pitStopsRef.document(pitStop.id).set(pitStop).await()
     }
 
-    // 🔸 Obtener escudería según el piloto (para el formulario)
+
     suspend fun obtenerEscuderiaPorPiloto(nombrePiloto: String): String? {
         val result = pilotosRef.whereEqualTo("nombre", nombrePiloto).get().await()
         return result.documents.firstOrNull()?.getString("escuderia")
     }
 
-    // 🔸 Obtener lista de pilotos (para dropdown)
+
     suspend fun obtenerPilotos(): List<String> {
         val result = pilotosRef.get().await()
         return result.documents.mapNotNull { it.getString("nombre") }
@@ -83,7 +83,7 @@ class PitStopRepository {
 
             snapshot.documents.mapNotNull { doc ->
                 doc.toObject(PitStop::class.java)
-            }.reversed() // para mostrarlos de más antiguo a más reciente
+            }.reversed()
 
         } catch (e: Exception) {
             emptyList()

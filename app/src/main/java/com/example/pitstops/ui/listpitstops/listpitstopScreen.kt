@@ -38,7 +38,7 @@ fun PitStopListScreen(
 
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
 
-    // 🔍 Filtrar por piloto
+
     val filteredList = pitStops.filter {
         it.piloto.contains(searchQuery.text, ignoreCase = true)
     }
@@ -51,7 +51,7 @@ fun PitStopListScreen(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-            // 🔙 Botón de retroceso
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start
@@ -65,7 +65,7 @@ fun PitStopListScreen(
                 }
             }
 
-            // 🏁 Título
+
             Text(
                 text = "Listado de Pit Stops",
                 fontSize = 24.sp,
@@ -73,7 +73,7 @@ fun PitStopListScreen(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // 🔍 Barra de búsqueda
+
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -84,7 +84,7 @@ fun PitStopListScreen(
                     .padding(bottom = 16.dp)
             )
 
-            // 🔄 Contenido
+
             if (loading) {
                 CircularProgressIndicator()
             } else {
@@ -100,7 +100,7 @@ fun PitStopListScreen(
                                 index = index + 1,
                                 pitStop = pitStop,
                                 onEdit = {
-                                    // ✅ Navegar a EditarPitStopScreen con el ID del pitstop
+
                                     navController.navigate("${AppScreens.EditPitStop.route}/${pitStop.id}")
                                 },
                                 onDelete = {
@@ -154,7 +154,7 @@ fun PitStopRow(
         Text(pitStop.piloto)
         Text(pitStop.tiempoTotal.toString())
 
-        // 🎨 Estado con color
+
         val estadoColor = when (pitStop.estado.lowercase()) {
             "ok" -> Color(0xFF4CAF50)
             "retraso" -> Color(0xFFFFC107)
@@ -170,7 +170,7 @@ fun PitStopRow(
             Text(pitStop.estado, color = Color.White)
         }
 
-        // 🛠️ Botones
+
         Row {
             IconButton(onClick = onEdit) {
                 Icon(Icons.Default.Edit, contentDescription = "Editar", tint = Color(0xFF1976D2))

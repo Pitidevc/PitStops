@@ -22,7 +22,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun EditarPitStopScreen(
     navController: NavController,
-    pitStopId: String, // 👈 se recibe el ID del pitstop a editar
+    pitStopId: String,
     viewModel: EditPitStopViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val pilotos by viewModel.pilotos.collectAsStateWithLifecycle()
@@ -32,13 +32,13 @@ fun EditarPitStopScreen(
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val pitStop by viewModel.pitStop.collectAsStateWithLifecycle()
 
-    // Cargar datos al abrir pantalla
+
     LaunchedEffect(Unit) {
         viewModel.cargarDatosFormulario()
         viewModel.cargarPitStopPorId(pitStopId)
     }
 
-    // Variables del formulario
+
     var piloto by remember { mutableStateOf("") }
     var escuderia by remember { mutableStateOf("") }
     var tiempo by remember { mutableStateOf("") }
@@ -48,7 +48,7 @@ fun EditarPitStopScreen(
     var motivoFallo by remember { mutableStateOf("") }
     var mecanicoPrincipal by remember { mutableStateOf("") }
 
-    // Actualizar campos cuando se cargue el pitstop
+
     LaunchedEffect(pitStop) {
         pitStop?.let {
             piloto = it.piloto
@@ -62,7 +62,7 @@ fun EditarPitStopScreen(
         }
     }
 
-    // Actualizar escudería automáticamente
+
     LaunchedEffect(piloto) {
         if (piloto.isNotBlank()) {
             viewModel.obtenerEscuderiaPorPiloto(piloto) {
@@ -71,7 +71,7 @@ fun EditarPitStopScreen(
         }
     }
 
-    // Volver al inicio si se guarda correctamente
+
     LaunchedEffect(mensaje) {
         if (mensaje?.contains("✅") == true) {
             delay(1500)
@@ -81,7 +81,7 @@ fun EditarPitStopScreen(
         }
     }
 
-    // UI
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -185,7 +185,7 @@ fun EditarPitStopScreen(
                                 estado = estado,
                                 motivoFallo = motivoFallo,
                                 mecanicoPrincipal = mecanicoPrincipal,
-                                fechaHora = pitStop?.fechaHora // mantener la original
+                                fechaHora = pitStop?.fechaHora
                             )
 
                             viewModel.actualizarPitStop(pitStopEditado)
