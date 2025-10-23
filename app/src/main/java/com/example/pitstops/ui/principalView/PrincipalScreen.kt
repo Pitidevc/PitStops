@@ -198,14 +198,12 @@ fun GraficaPitStops(pitStops: List<PitStop>, modifier: Modifier = Modifier) {
             }
         },
         update = { chart ->
-            if (pitStops.isNotEmpty() && chart.data?.entryCount != pitStops.size) {
+            if (pitStops.isNotEmpty()) {
                 val entries = pitStops.mapIndexed { index, pit ->
                     BarEntry(index.toFloat(), pit.tiempoTotal.toFloat())
                 }
 
-                val labels = pitStops.map { pit ->
-                    pit.piloto
-                }
+                val labels = pitStops.map { pit -> pit.piloto }
 
                 val dataSet = BarDataSet(entries, "Tiempo de Pit Stops (s)").apply {
                     color = android.graphics.Color.rgb(198, 69, 56)
@@ -214,17 +212,26 @@ fun GraficaPitStops(pitStops: List<PitStop>, modifier: Modifier = Modifier) {
                 }
 
                 val data = BarData(dataSet)
-                data.barWidth = 0.5f
+                data.barWidth = 0.4f
                 chart.data = data
 
                 val xAxis = chart.xAxis
                 xAxis.valueFormatter = IndexAxisValueFormatter(labels)
                 xAxis.position = XAxis.XAxisPosition.BOTTOM
                 xAxis.textColor = android.graphics.Color.BLACK
+                xAxis.setDrawGridLines(false)
+                xAxis.granularity = 1f
+                xAxis.labelRotationAngle = -20f
+                xAxis.labelCount = labels.size
+                xAxis.axisMinimum = -0.3f
+                xAxis.axisMaximum = pitStops.size - 0.7f
+
                 chart.axisLeft.textColor = android.graphics.Color.BLACK
                 chart.axisRight.isEnabled = false
                 chart.legend.textColor = android.graphics.Color.BLACK
                 chart.description.isEnabled = false
+                chart.setExtraOffsets(10f, 0f, 10f, 20f)
+
                 chart.invalidate()
             }
         },
@@ -234,4 +241,5 @@ fun GraficaPitStops(pitStops: List<PitStop>, modifier: Modifier = Modifier) {
             .padding(16.dp)
     )
 }
+
 
