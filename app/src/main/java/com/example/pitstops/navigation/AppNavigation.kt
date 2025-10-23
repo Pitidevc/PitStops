@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.pitstops.ui.addpitstop.RegistrarPitStopScreen
+import com.example.pitstops.ui.editpitstop.EditarPitStopScreen
 import com.example.pitstops.ui.listpitstops.PitStopListScreen
 import com.example.pitstops.ui.principalView.PrincipalScreen
 
@@ -20,6 +21,12 @@ fun AppNavigation(){
         }
         composable (route = AppScreens.ListScreen.route){
             PitStopListScreen(navController)
+        }
+        composable(
+            route = "${AppScreens.EditPitStop.route}/{pitStopId}",
+        ) { backStackEntry ->
+            val pitStopId = backStackEntry.arguments?.getString("pitStopId") ?: ""
+            EditarPitStopScreen(navController = navController, pitStopId = pitStopId)
         }
     }
 

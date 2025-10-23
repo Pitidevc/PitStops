@@ -92,7 +92,6 @@ fun PitStopListScreen(
                     Text("No se encontraron Pit Stops", color = Color.Gray)
                 } else {
                     EncabezadoTabla()
-
                     Spacer(modifier = Modifier.height(8.dp))
 
                     LazyColumn {
@@ -101,8 +100,8 @@ fun PitStopListScreen(
                                 index = index + 1,
                                 pitStop = pitStop,
                                 onEdit = {
-                                    // ⚙️ Navegación futura a la pantalla de edición
-                                    // navController.navigate("${AppScreens.EditPitStop.route}/${pitStop.id}")
+                                    // ✅ Navegar a EditarPitStopScreen con el ID del pitstop
+                                    navController.navigate("${AppScreens.EditPitStop.route}/${pitStop.id}")
                                 },
                                 onDelete = {
                                     coroutineScope.launch {
